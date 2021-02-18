@@ -118,7 +118,7 @@ class Board:
             if abs(row1 - other_king_row) == 1 and \
                     abs(col1 - other_king_col) == 1:
                 return 'Король не может вплотную подходить к другому королю.'
-            elif board.under_attack(row1, col1, board.opponent_color(), False):
+            elif self.under_attack(row1, col1, self.opponent_color(), False):
                 return 'Король не может ходить под шах.'
 
             # Если король пойдёт вдоль линии атаки, он не сможет убраться из под шаха
@@ -126,7 +126,7 @@ class Board:
                 return 'Уберите короля из-под шаха.'
 
             # Нельзя атаковать фигуру своего цвета
-            elif not piece.can_move(board, row, col, row1, col1) \
+            elif not piece.can_move(self, row, col, row1, col1) \
                     or self.field[row1][col1] and self.field[row1][col1].get_color() == self.current_player_color():
                 return 'Координаты некорректны. Попоробуйте другой ход.'
 
@@ -379,7 +379,7 @@ class Board:
         row_king, col_king = self.get_current_king_coords()
 
         # Если фигура противника может атаковать короля, она ставит ему шах
-        if self.field[row][col].can_attack(board, row, col, row_king, col_king):
+        if self.field[row][col].can_attack(self, row, col, row_king, col_king):
             self.is_check = True
 
             step_i = 0
@@ -435,11 +435,11 @@ class Board:
 
         # Непосредственно в клетке стоит фигура, угрожающая королю
         if self.field[row][col] and self.field[row][col].get_color() == self.opponent_color() and \
-                self.field[row][col].can_attack(board, row, col, row_king, col_king):
+                self.field[row][col].can_attack(self, row, col, row_king, col_king):
             return row, col
 
         # Через клетку нельзя атаковать короля
-        if not Queen(None).can_move(board, row, col, row_king, col_king):
+        if not Queen(None).can_move(self, row, col, row_king, col_king):
             return False
 
         # Через клетку можно атаковать короля по диагонали
