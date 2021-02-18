@@ -670,5 +670,3 @@ class Bishop(Figure):
 
 WHITE = 1
 BLACK = 2
-
-board = Board()  # Создаем объект доски
