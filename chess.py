@@ -51,13 +51,6 @@ class Board:
             self.field[6][j] = Pawn(BLACK)  # Расставляем пешки
             self.field[1][j] = Pawn(WHITE)
 
-        # Создаем значки фигур на поле
-        for j in range(8):
-            self.field[7][j].set_token(7, j)
-            self.field[0][j].set_token(0, j)
-            self.field[6][j].set_token(6, j)
-            self.field[1][j].set_token(1, j)
-
         self.is_check = False  # Атрибут для отслеживания шаха
 
         # Координаты королей
@@ -117,7 +110,6 @@ class Board:
         # Взятие на проходе
         if isinstance(piece, Pawn) and (row1, col1) == self.en_passant \
                 and piece.can_attack(self, row, col, row1, col1):
-            self.field[row][col1].del_token()
             self.field[row][col1] = None
 
         elif isinstance(piece, King):
@@ -192,10 +184,7 @@ class Board:
                 self.black_king_coords = row1, col1
 
         self.field[row][col] = None  # Снять фигуру
-        if self.field[row1][col1]:  # Если в занимаемой клетке стоит другая фигура, удаляем её значёк
-            self.field[row1][col1].del_token()
         self.field[row1][col1] = piece  # Поставить на новое место.
-        self.field[row1][col1].set_token(row1, col1)  # Создаём значёк фигуры на новом месте
         self.end_turn()
 
     def try_promote_pawn(self, row, col, row1, col1):
@@ -219,15 +208,11 @@ class Board:
     def move_and_promote_pawn(self, row, col, row1, col1, figure):
         """Метод перемещает фигуру из клетки (row, col) в клетку (row1, col1),
         после этого превращает её в фигуру figure."""
-        if self.field[row1][col1]:  # Если в занимаемой клетке стоит другая фигура, удаляем её значёк
-            self.field[row1][col1].del_token()
 
         # Создаём фигуру того же цвета, что и пешка
         self.field[row1][col1] = figure(self.field[row][col].get_color())
-
-        self.field[row][col].del_token()  # Убираем значёк исходной фигуры
         self.field[row][col] = None  # Убираем исходную фигуру
-        self.field[row1][col1].set_token(row1, col1)  # Создаём значёк фигуры на новом месте
+
         self.end_turn()
 
     def try_castling0(self):
@@ -266,10 +251,6 @@ class Board:
         # Отмечаем, что король иладья уже совершили рокировку
         self.field[row][4].already_moved()
         self.field[row][0].already_moved()
-
-        # Двигаем значки фигур
-        self.field[row][4].set_token(row, 2)
-        self.field[row][0].set_token(row, 3)
 
         # Двигаем фигуры
         self.field[row][2] = self.field[row][4]
@@ -316,8 +297,6 @@ class Board:
 
         self.field[row][4].already_moved()
         self.field[row][7].already_moved()
-        self.field[row][4].set_token(row, 6)
-        self.field[row][7].set_token(row, 5)
         self.field[row][6] = self.field[row][4]
         self.field[row][5] = self.field[row][7]
         self.field[row][4] = None
