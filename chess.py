@@ -164,6 +164,18 @@ class Board:
 
         return True
 
+    def move_options(self, row, col):
+        """Метод возвращает список клеток,
+        в которые может пойти фигура, стоящая в клетке (row, col)."""
+        cells = []
+
+        for i in range(8):
+            for j in range(8):
+                if self.try_move(row, col, i, j):
+                    cells.append((i, j))
+
+        return cells
+
     def move_piece(self, row, col, row1, col1):
         """Переместить фигуру из клетки (row, col) в клетку (row1, col1)."""
         piece = self.field[row][col]
