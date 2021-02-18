@@ -98,14 +98,14 @@ class Board:
         Если нет --- вернёт строку, содержащую причину, по которой переместить фигуру нельзя"""
 
         if row == row1 and col == col1:
-            return 'Нельзя пойти в ту же клетку'
+            return False
 
         piece = self.field[row][col]
 
         if piece is None:
-            return 'Координаты некорректны. Попоробуйте другой ход.'
+            return False
         if piece.get_color() != self.color:
-            return 'Вы не можете ходить фигурой противника.'
+            return False
 
         # Взятие на проходе
         if isinstance(piece, Pawn) and (row1, col1) == self.en_passant \
@@ -117,31 +117,31 @@ class Board:
 
             if abs(row1 - other_king_row) == 1 and \
                     abs(col1 - other_king_col) == 1:
-                return 'Король не может вплотную подходить к другому королю.'
+                return False
             elif self.under_attack(row1, col1, self.opponent_color(), False):
-                return 'Король не может ходить под шах.'
+                return False
 
             # Если король пойдёт вдоль линии атаки, он не сможет убраться из под шаха
             elif move_direction(row, col, row1, col1) in self.attack_direction:
-                return 'Уберите короля из-под шаха.'
+                return False
 
             # Нельзя атаковать фигуру своего цвета
             elif not piece.can_move(self, row, col, row1, col1) \
                     or self.field[row1][col1] and self.field[row1][col1].get_color() == self.current_player_color():
-                return 'Координаты некорректны. Попоробуйте другой ход.'
+                return False
 
         elif self.field[row1][col1] is None and not piece.can_move(self, row, col, row1, col1):
-            return 'Координаты некорректны. Попоробуйте другой ход.'
+            return False
 
         # Нельзя атаковать фигуру своего цвета
         elif self.field[row1][col1] and (self.field[row1][col1].get_color() == piece.get_color() or
                                          not piece.can_attack(self, row, col, row1, col1)):
-            return 'Координаты некорректны. Попоробуйте другой ход.'
+            return False
 
         # Защитится от шаха можно поставив фигуру в клетку, через которую король может быть атакован
         # Если королю угрожают сразу две фигуры, защититься от шаха таким образом не получиться
         elif self.is_check and not self.king_can_be_attacked(row1, col1) or self.double_attack:
-            return 'Защититесь от шаха'
+            return False
 
         # Если фигура закрывает короля от атаки вражеской фигуры,
         # она может передвигаться только вдоль линии атаки этой фигуры.
@@ -152,7 +152,7 @@ class Board:
                 (move_direction(row, col, row1, col1) != move_direction(*self.get_current_king_coords(), row, col)
                  and move_direction(row, col, row1, col1) != move_direction(row, col, *self.get_current_king_coords())
                  or isinstance(piece, Knight)):
-            return 'Нельзя подставлять короля под шах'
+            return False
 
         return True
 
