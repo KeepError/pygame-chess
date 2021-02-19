@@ -66,7 +66,7 @@ class Game:
         self.selector_left = self.left_indent + selector_indent
         self.selector_width = self.cell_size * self.width - selector_indent * 2
         self.selector_height = self.selector_cell_size = self.selector_width // len(SELECTOR_PIECES)
-        self.selector_top = self.top_indent + self.cell_size * self.height / 2 - self.selector_height / 2
+        self.selector_top = int(self.top_indent + self.cell_size * self.height / 2 - self.selector_height / 2)
 
         self.pieces = dict()
         for piece, name in PIECES_IMAGES_NAMES.items():
@@ -208,8 +208,49 @@ class Game:
                 write_text(record, x, y, 30)
 
         def draw_pieces_selector():
+            text_height = 40
+
+            def draw_background():
+                color = BACKGROUND_COLOR
+                rect = (self.selector_left, self.selector_top - text_height,
+                        self.selector_width, self.selector_height + text_height)
+                pygame.draw.rect(screen, color, rect, 0)
+
+            def draw_borders():
+                color = MAIN_COLOR
+                width = 1
+
+                rect = (self.selector_left, self.selector_top - text_height,
+                        self.selector_width, self.selector_height + text_height)
+                pygame.draw.rect(screen, color, rect, width)
+
+                for i in range(len(SELECTOR_PIECES)):
+                    rect = (self.selector_left + i * self.selector_cell_size,
+                            self.selector_top, self.selector_cell_size, self.selector_height)
+                    pygame.draw.rect(screen, color, rect, width)
+
+            def draw_title():
+                x = self.selector_left + self.selector_width // 2
+                y = self.selector_top - text_height // 2
+                title = "Выберите фигуру"
+                size = 30
+                write_text(title, x, y, size)
+
+            def draw_selector_pieces():
+                for i, piece in enumerate(SELECTOR_PIECES):
+                    orig_image = self.pieces[piece][self.board.color]
+                    image = pygame.transform.scale(orig_image, (self.selector_cell_size,) * 2)
+                    x = self.selector_left + i * self.selector_cell_size
+                    y = self.selector_top
+                    rect = image.get_rect().move(x, y)
+                    screen.blit(image, rect)
+
             if not self.promoting_cell:
                 return
+            draw_background()
+            draw_borders()
+            draw_title()
+            draw_selector_pieces()
 
         screen.fill(BACKGROUND_COLOR)
 
@@ -229,10 +270,10 @@ class Game:
 
     def get_piece_from_selector(self, mouse_pos):
         """Обработать клик"""
-        if not self.selector_top <= mouse_pos[1] <= self.selector_top + self.height:
+        if not self.selector_top <= mouse_pos[1] <= self.selector_top + self.selector_height:
             return None
-        index = (mouse_pos[0] - self.selector_left) // self.cell_size
-        if index not in range(len(self.pieces)):
+        index = (mouse_pos[0] - self.selector_left) // self.selector_cell_size
+        if index not in range(len(SELECTOR_PIECES)):
             return None
         return SELECTOR_PIECES[index]
 
