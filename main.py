@@ -223,6 +223,10 @@ class Game:
         draw_history()
         draw_pieces_selector()
 
+    def add_to_history(self, row1, col1, row2, col2):
+        """Добавить запись в историю"""
+        self.history.append(human_format((row1, col1)) + ' -> ' + human_format((row2, col2)))
+
     def get_piece_from_selector(self, mouse_pos):
         """Обработать клик"""
         if not self.selector_top <= mouse_pos[1] <= self.selector_top + self.height:
@@ -258,7 +262,7 @@ class Game:
         if isinstance(cell, Figure) and self.board.try_move(row1, col1, row2, col2):
             self.board.move_piece(row1, col1, row2, col2)
             # Добавить запись в историю
-            self.history.append(human_format((row1, col1)) + ' -> ' + human_format((row2, col2)))
+            self.add_to_history(row1, col1, row2, col2)
         self.selected_cell = None
 
     def get_click(self, mouse_pos):
@@ -272,7 +276,7 @@ class Game:
             piece = self.get_piece_from_selector(mouse_pos)
             if piece:
                 self.board.move_and_promote_pawn(*self.promoting_cell, piece)
-                self.history.append(human_format(self.promoting_cell[:2]) + ' -> ' + human_format(self.promoting_cell[2:]))
+                self.add_to_history(*self.promoting_cell)
                 self.promoting_cell = None
             return
 
