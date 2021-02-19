@@ -39,12 +39,20 @@ def gen_piece_image_name(image_name, color):
     color_name = "black" if color == BLACK else "white"
     return f"{color_name}_{image_name}.png"
 
+def human_format(coordinates):
+    row, col = coordinates
+    return chr(ord('A') + col) + str(row + 1)
+
 
 class Game:
     def __init__(self):
         self.board = Board()
         self.history = []
         self.selected_cell = None
+
+        self.promoting_cell = None
+        self.new_promoting_piece = None
+
         self.locked = False
 
         self.left_indent = 70
@@ -53,6 +61,12 @@ class Game:
         self.border_width = 30
 
         self.width, self.height = 8, 8
+
+        selector_indent = 30
+        self.selector_left = self.left_indent + selector_indent
+        self.selector_width = self.cell_size * self.width - selector_indent * 2
+        self.selector_height = self.selector_cell_size = self.selector_width // len(SELECTOR_PIECES)
+        self.selector_top = self.top_indent + self.cell_size * self.height / 2 - self.selector_height / 2
 
         self.pieces = dict()
         for piece, name in PIECES_IMAGES_NAMES.items():
@@ -194,7 +208,8 @@ class Game:
                 write_text(record, x, y, 30)
 
         def draw_pieces_selector():
-            pass
+            if not self.promoting_cell:
+                return
 
         screen.fill(BACKGROUND_COLOR)
 
@@ -208,13 +223,17 @@ class Game:
         draw_history()
         draw_pieces_selector()
 
+    def get_piece_from_selector(self, mouse_pos):
+        """Обработать клик"""
+        if not self.selector_top <= mouse_pos[1] <= self.selector_top + self.height:
+            return None
+        index = (mouse_pos[0] - self.selector_left) // self.cell_size
+        if index not in range(len(self.pieces)):
+            return None
+        return SELECTOR_PIECES[index]
+
     def on_click(self, cell_coordinates):
         """Обработка выбранной фигуры"""
-
-        def human_format(coordinates):
-            row, col = coordinates
-            return chr(ord('A') + col) + str(row + 1)
-
         row2, col2 = cell_coordinates
 
         # Если ранее не была выбрана фигура
@@ -231,6 +250,11 @@ class Game:
 
         row1, col1 = self.selected_cell
         cell = self.board.field[row1][col1]
+
+        if self.board.try_promote_pawn(row1, col1, row2, col2):
+            self.promoting_cell = row1, col1, row2, col2
+            return
+
         if isinstance(cell, Figure) and self.board.try_move(row1, col1, row2, col2):
             self.board.move_piece(row1, col1, row2, col2)
             # Добавить запись в историю
@@ -242,6 +266,14 @@ class Game:
 
         # Проверка заблокировано ли поле
         if self.locked:
+            return
+
+        if self.promoting_cell:
+            piece = self.get_piece_from_selector(mouse_pos)
+            if piece:
+                self.board.move_and_promote_pawn(*self.promoting_cell, piece)
+                self.history.append(human_format(self.promoting_cell[:2]) + ' -> ' + human_format(self.promoting_cell[2:]))
+                self.promoting_cell = None
             return
 
         cell = self.get_coords(mouse_pos)
@@ -267,6 +299,8 @@ PIECES_IMAGES_NAMES = {
     Queen: "queen",
     King: "king"
 }
+
+SELECTOR_PIECES = (Pawn, Rook, Knight, Bishop, Queen)
 
 if __name__ == "__main__":
     pygame.init()
