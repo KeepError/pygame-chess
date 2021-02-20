@@ -55,6 +55,9 @@ class Game:
 
         self.locked = False
 
+        self.winner = None
+        self.is_check = False
+
         self.left_indent = 70
         self.top_indent = 90
         self.cell_size = 50
@@ -140,7 +143,20 @@ class Game:
 
         def draw_winner():
             """Написать информацию о шахе/победителе"""
-            pass
+            text = None
+            if self.winner in (BLACK, WHITE):
+                side = "БЕЛЫЕ" if self.winner == WHITE else "ЧЁРНЫЕ"
+                text = "ПОБЕДИЛИ " + side
+            elif self.is_check:
+                text = "ШАХ"
+
+            if not text:
+                return
+
+            size = 40
+            x = self.left_indent + self.cell_size * (self.width / 2)
+            y = self.top_indent + self.cell_size * self.height + self.border_width + 30
+            write_text(text, x, y, size)
 
         def draw_cells():
             """Нарисовать сетку"""
@@ -264,6 +280,18 @@ class Game:
         draw_history()
         draw_pieces_selector()
 
+    def check_winner(self, row, col):
+        result = self.board.check_and_mate(row, col)
+        if result is None:
+            self.is_check = False
+            return
+        if result == CHECK:
+            self.is_check = True
+            return
+        if result == MATE:
+            self.winner = opponent(self.board.color)
+            self.locked = True
+
     def add_to_history(self, row1, col1, row2, col2):
         """Добавить запись в историю"""
         self.history.append(human_format((row1, col1)) + ' -> ' + human_format((row2, col2)))
@@ -302,6 +330,7 @@ class Game:
 
         if isinstance(cell, Figure) and self.board.try_move(row1, col1, row2, col2):
             self.board.move_piece(row1, col1, row2, col2)
+            self.check_winner(row2, col2)
             # Добавить запись в историю
             self.add_to_history(row1, col1, row2, col2)
         self.selected_cell = None
@@ -317,6 +346,7 @@ class Game:
             piece = self.get_piece_from_selector(mouse_pos)
             if piece:
                 self.board.move_and_promote_pawn(*self.promoting_cell, piece)
+                self.check_winner(*self.promoting_cell[2:])
                 self.add_to_history(*self.promoting_cell)
                 self.promoting_cell = None
             return

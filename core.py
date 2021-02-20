@@ -393,7 +393,7 @@ class Board:
 
     def check_and_mate(self, row, col):
         """Метод проверяет может ли фигура в клетке (row, col) поставить шах или мат
-        королю текущего игрока и возвращает строки 'Шах' или 'Мат' соответственно.
+        королю текущего игрока и возвращает CHECK или MATE соответственно.
         Если шах или мат поставить невозможно, возвращает None."""
         row_king, col_king = self.get_current_king_coords()
 
@@ -440,9 +440,9 @@ class Board:
 
             # Если игрок может передвинуть короля или защитить короля, ему поставили шах, иначе - мат
             if self.king_escapes_attack() or defend_king:
-                return "Шах"
+                return MATE
             else:
-                return "Мат"
+                return CHECK
         else:
             return None
 
@@ -685,5 +685,10 @@ class Bishop(Figure):
         return True
 
 
+# Константы цветов
 WHITE = 1
 BLACK = 2
+
+# Константы шаха и мата
+CHECK = 0
+MATE = 1
