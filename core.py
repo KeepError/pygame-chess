@@ -111,6 +111,12 @@ class Board:
             return piece.can_attack(self, row, col, row1, col1)
 
         if isinstance(piece, King):
+            if row1 == (self.color - 1) * 7:
+                if col1 == 2 and self.try_castling0():
+                    return True
+                if col1 == 6 and self.try_castling7():
+                    return True
+
             other_king_row, other_king_col = self.get_opponent_king_coords()
 
             if abs(row1 - other_king_row) == 1 and \
@@ -189,6 +195,12 @@ class Board:
                 self.white_king_coords = row1, col1
             else:
                 self.black_king_coords = row1, col1
+
+            # Рокировка
+            if col1 - col == -2:
+                return self.castling0()
+            if col1 - col == 2:
+                return self.castling7()
 
         self.field[row][col] = None  # Снять фигуру
         self.field[row1][col1] = piece  # Поставить на новое место.
