@@ -440,9 +440,9 @@ class Board:
 
             # Если игрок может передвинуть короля или защитить короля, ему поставили шах, иначе - мат
             if self.king_escapes_attack() or defend_king:
-                return MATE
-            else:
                 return CHECK
+            else:
+                return MATE
         else:
             return None
 
