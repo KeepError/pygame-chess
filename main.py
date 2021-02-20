@@ -39,12 +39,16 @@ def gen_piece_image_name(image_name, color):
     color_name = "black" if color == BLACK else "white"
     return f"{color_name}_{image_name}.png"
 
+
 def human_format(coordinates):
+    """Преобразование координат в читаемый вид"""
     row, col = coordinates
     return chr(ord('A') + col) + str(row + 1)
 
 
 class Game:
+    """Класс игры"""
+
     def __init__(self):
         self.board = Board()
         self.history = []
@@ -173,6 +177,7 @@ class Game:
 
         def draw_pieces():
             """Отрисовать фигуры"""
+
             def draw_piece():
                 orig_image = self.pieces[piece.__class__][piece.color]
                 image = pygame.transform.scale(orig_image, (self.cell_size, self.cell_size))
@@ -224,6 +229,7 @@ class Game:
                 write_text(record, x, y, 30)
 
         def draw_pieces_selector():
+            """Отрисовать окно выбора фигур для превращения пешки"""
             text_height = 40
 
             def draw_background():
@@ -281,6 +287,7 @@ class Game:
         draw_pieces_selector()
 
     def check_winner(self, row, col):
+        """Проверка, может ли фигура поставить шах/мат"""
         result = self.board.check_and_mate(row, col)
         if result is None:
             self.is_check = False
