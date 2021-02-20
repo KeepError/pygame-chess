@@ -107,6 +107,9 @@ class Board:
         if piece.get_color() != self.color:
             return False
 
+        if isinstance(piece, Pawn) and (row1, col1) == self.en_passant:
+            return piece.can_attack(self, row, col, row1, col1)
+
         if isinstance(piece, King):
             other_king_row, other_king_col = self.get_opponent_king_coords()
 
@@ -168,8 +171,13 @@ class Board:
         piece = self.field[row][col]
 
         # Взятие на проходе
-        if isinstance(piece, Pawn) and (row1, col1) == self.en_passant:
-            self.field[row][col1] = None
+        if isinstance(piece, Pawn):
+            if (row1, col1) == self.en_passant:
+                self.field[row][col1] = None
+            elif abs(row - row1) == 2:
+                direction = 1 if row1 > row else -1
+                self.en_passant = (row + direction, col)
+                self.long_pawn_move = True
 
         # Отмечаем, что король или ладья передвинулась, для отслеживания рокировки
         if isinstance(piece, Rook) or isinstance(piece, King):
@@ -597,8 +605,6 @@ class Pawn(Figure):
         if (row == start_row
                 and row + 2 * direction == row1
                 and board.field[row + direction][col] is None):
-            board.en_passant = (row + direction, col)
-            board.long_pawn_move = True
             return True
 
         return False
