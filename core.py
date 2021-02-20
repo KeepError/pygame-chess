@@ -107,12 +107,7 @@ class Board:
         if piece.get_color() != self.color:
             return False
 
-        # Взятие на проходе
-        if isinstance(piece, Pawn) and (row1, col1) == self.en_passant \
-                and piece.can_attack(self, row, col, row1, col1):
-            self.field[row][col1] = None
-
-        elif isinstance(piece, King):
+        if isinstance(piece, King):
             other_king_row, other_king_col = self.get_opponent_king_coords()
 
             if abs(row1 - other_king_row) == 1 and \
@@ -171,6 +166,10 @@ class Board:
     def move_piece(self, row, col, row1, col1):
         """Переместить фигуру из клетки (row, col) в клетку (row1, col1)."""
         piece = self.field[row][col]
+
+        # Взятие на проходе
+        if isinstance(piece, Pawn) and (row1, col1) == self.en_passant:
+            self.field[row][col1] = None
 
         # Отмечаем, что король или ладья передвинулась, для отслеживания рокировки
         if isinstance(piece, Rook) or isinstance(piece, King):
