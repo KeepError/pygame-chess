@@ -349,7 +349,7 @@ class Game:
         self.history.append(human_format((row1, col1)) + ' -> ' + human_format((row2, col2)))
 
     def get_piece_from_selector(self, mouse_pos):
-        """Обработать клик"""
+        """Обработать клик по окну выбора фигур"""
         if not self.selector_top <= mouse_pos[1] <= self.selector_top + self.selector_height:
             return None
         index = (mouse_pos[0] - self.selector_left) // self.selector_cell_size
@@ -358,6 +358,7 @@ class Game:
         return SELECTOR_PIECES[index]
 
     def get_button_func(self, mouse_pos):
+        """Обработать клик по кнопкам"""
         x, y = mouse_pos
         for button in self.buttons:
             if x in range(button["left"], button["right"] + 1) \
