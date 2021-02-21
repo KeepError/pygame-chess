@@ -46,6 +46,21 @@ def human_format(coordinates):
     return chr(ord('A') + col) + str(row + 1)
 
 
+def start_screen():
+    """Заставка"""
+    screen.fill(BACKGROUND_COLOR)
+    image = load_image(START_SCREEN_IMAGE, size=SIZE)
+    screen.blit(image, (0, 0))
+    pygame.display.flip()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                return
+
+
 def start_new_game():
     global game
     game = Game()
@@ -439,6 +454,8 @@ PIECES_IMAGES_NAMES = {
     King: "king"
 }
 
+START_SCREEN_IMAGE = "start_screen.png"
+
 SELECTOR_PIECES = (Pawn, Rook, Knight, Bishop, Queen)
 
 BUTTONS = [
@@ -454,7 +471,7 @@ if __name__ == "__main__":
     icon = load_image(ICON)
     pygame.display.set_icon(icon)
 
-    # start_screen()
+    start_screen()
 
     board_reversed = False
 
