@@ -46,6 +46,16 @@ def human_format(coordinates):
     return chr(ord('A') + col) + str(row + 1)
 
 
+def start_new_game():
+    global game
+    game = Game()
+
+
+def flip_board():
+    global board_reversed
+    board_reversed = not board_reversed
+
+
 class Game:
     """Класс игры"""
 
@@ -82,10 +92,34 @@ class Game:
                 item[color] = load_image(gen_piece_image_name(name, color))
             self.pieces[piece] = item
 
+        self.buttons = self.get_buttons()
+
+    def get_buttons(self):
+        """Получить информацию о кнопках"""
+        horizontal_indent = 40
+        left = self.left_indent + self.cell_size * self.width + self.border_width + horizontal_indent
+        right = left + 130 + horizontal_indent * 2
+        bottom = self.top_indent + self.cell_size * self.height + self.border_width
+        vertical_indent = 55
+        height = 40
+        buttons = []
+        for i, (title, size, func) in enumerate(BUTTONS[::-1]):
+            item = {
+                "title": title,
+                "size": size,
+                "func": func,
+                "left": left,
+                "right": right,
+                "bottom": bottom - vertical_indent * i,
+                "top": bottom - vertical_indent * i - height
+            }
+            buttons.append(item)
+        return buttons
+
     def get_coords(self, pos):
         """Получить координаты клетки по позиции"""
         row = (pos[1] - self.top_indent) // self.cell_size
-        row = 7 - row
+        row = 7 - row if not board_reversed else row
         col = (pos[0] - self.left_indent) // self.cell_size
 
         if col not in range(self.width) or row not in range(self.height):
@@ -95,7 +129,7 @@ class Game:
     def get_position(self, coordinates):
         """Получить позицию по координатам клетки"""
         row, col = coordinates
-        row = 7 - row
+        row = 7 - row if not board_reversed else row
         x = self.left_indent + self.cell_size * col
         y = self.top_indent + self.cell_size * row
         return x, y
@@ -126,10 +160,11 @@ class Game:
             size = 30
 
             for i in range(self.height):
+                number = i if not board_reversed else 7 - i
                 y = self.top_indent + self.cell_size * (self.height - i - 0.5)
                 for x in (self.left_indent - self.border_width // 2,
                           self.left_indent + self.cell_size * self.width + self.border_width // 2):
-                    write_text(str(i + 1), x, y, size)
+                    write_text(str(number + 1), x, y, size)
 
             for i in range(self.width):
                 x = self.left_indent + self.cell_size * (i + 0.5)
@@ -218,7 +253,7 @@ class Game:
             write_text("ИСТОРИЯ", (x_first + x_second) // 2, y, 40)
             y += 5
 
-            count = 12 * 2
+            count = 9 * 2
             last_records = self.history[-count:] if len(self.history) % 2 == 0 else self.history[-count + 1:]
             for i, record in enumerate(last_records):
                 if i % 2 == 0:
@@ -227,6 +262,15 @@ class Game:
                 else:
                     x = x_second
                 write_text(record, x, y, 30)
+
+        def draw_buttons():
+            """Отрисовать кнопки"""
+            for button in self.buttons:
+                left, top, right, bottom = button["left"], button["top"], button["right"], button["bottom"]
+                width, height = right - left, bottom - top
+                rect = (left, top, width, height)
+                pygame.draw.rect(screen, MAIN_COLOR, rect, 1)
+                write_text(button["title"], left + width // 2, top + height // 2, button["size"])
 
         def draw_pieces_selector():
             """Отрисовать окно выбора фигур для превращения пешки"""
@@ -284,6 +328,7 @@ class Game:
         draw_winner()
         draw_pieces()
         draw_history()
+        draw_buttons()
         draw_pieces_selector()
 
     def check_winner(self, row, col):
@@ -311,6 +356,13 @@ class Game:
         if index not in range(len(SELECTOR_PIECES)):
             return None
         return SELECTOR_PIECES[index]
+
+    def get_button_func(self, mouse_pos):
+        x, y = mouse_pos
+        for button in self.buttons:
+            if x in range(button["left"], button["right"] + 1) \
+                    and y in range(button["top"], button["bottom"]):
+                return button["func"]
 
     def on_click(self, cell_coordinates):
         """Обработка выбранной фигуры"""
@@ -344,6 +396,10 @@ class Game:
 
     def get_click(self, mouse_pos):
         """Обработать клик"""
+
+        func = self.get_button_func(mouse_pos)
+        if func is not None:
+            return func()
 
         # Проверка заблокировано ли поле
         if self.locked:
@@ -384,6 +440,11 @@ PIECES_IMAGES_NAMES = {
 
 SELECTOR_PIECES = (Pawn, Rook, Knight, Bishop, Queen)
 
+BUTTONS = [
+    ("ПЕРЕВЕРНУТЬ ДОСКУ", 26, flip_board),
+    ("НОВАЯ ИГРА", 36, start_new_game)
+]
+
 if __name__ == "__main__":
     pygame.init()
     pygame.display.set_caption(CAPTION)
@@ -394,8 +455,7 @@ if __name__ == "__main__":
 
     # start_screen()
 
-    all_sprites = pygame.sprite.Group()
-    pieces_group = pygame.sprite.Group()
+    board_reversed = False
 
     game = Game()
     game.render(screen)
