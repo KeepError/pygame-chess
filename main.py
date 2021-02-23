@@ -6,6 +6,17 @@ import pygame
 from core import *
 
 
+def resource_path(relative_path):
+    """Получить абсолютный путь"""
+    try:
+        # если скомпилирован .exe файл
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+
 def terminate():
     """Завершить работу"""
     pygame.quit()
@@ -15,6 +26,9 @@ def terminate():
 def load_image(name, colorkey=None, size=None):
     """Загрузить изображение"""
     fullname = os.path.join('data', name)
+
+    fullname = resource_path(fullname)
+
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
